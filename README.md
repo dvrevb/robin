@@ -112,11 +112,3 @@ will be updated
 ```
 
 ---
-
-## Roadmap
-
-- [ ] Support for file inputs (PDFs, CSVs)
-- [ ] Custom evaluator plugins
-- [ ] Parallel agent runs
-- [ ] Memory across sessions
-- [ ] API server mode
