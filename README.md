@@ -28,66 +28,66 @@ You → Task + Success Criteria
 ```
 
 1. **You define the task** — what needs to be done and what "done" looks like
-2. **The Agent gets to work** — it reasons, searches the web, and produces an output
+2. **The Agent gets to work** — it reasons, searches the web, writes files, runs code, and produces an output
 3. **The Evaluator checks it** — compares the output against your success criteria
-4. **Loop or deliver** — if it passes, you get the result; if not, the agent tries again
+4. **Loop or deliver** — if it passes, you get the result; if not, the agent tries again with feedback
 
 ---
 
 ## Features
 
-- 🌐 **Web scraping** — Robin can search and extract information from the web autonomously
+- 🌐 **Web browsing** — Robin navigates and scrapes pages autonomously using a real browser (Playwright)
+- 🔍 **Web search** — searches the web for current, real-time information via Serper
+- 🐍 **Code execution** — runs Python code on the fly with a built-in REPL
+- 📁 **File management** — reads and writes files to a sandboxed directory
+- 📬 **Push notifications** — alerts you when a task is done via Pushover
 - 🔁 **Self-correcting loop** — the evaluator sends failed attempts back to the agent with feedback
 - ✅ **Criteria-driven** — you define success; Robin works until it's achieved
 - 🧠 **Agentic reasoning** — the agent breaks down tasks and adapts its approach across iterations
-- 📬 **Clean delivery** — once the output passes evaluation, it's returned to you directly
 
 ---
 
 ## Quick Start
 
+**1. Clone and install**
 ```bash
-# Install
-pip install robin-agent
+git clone https://github.com/yourname/robin
+cd robin
+```
 
-# Run a task
-robin run \
-  --task "Find the top 5 open-source LLM projects on GitHub by stars this month" \
-  --criteria "Must include project name, star count, and a one-line description for each"
+**2. Install uv (if not already)**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+**3. Install dependencies**
+```bash
+uv sync
+uv run playwright install chromium
+```
+
+**4. Set up your `.env`**
+```env
+OPENAI_API_KEY=your_key
+PUSHOVER_TOKEN=your_token
+PUSHOVER_USER=your_user
+SERPER_API_KEY=your_key
+```
+
+**5. Run**
+```bash
+uv run app.py
 ```
 
 ---
 
 ## Usage
 
-### CLI
+Open the Gradio UI in your browser. Enter your task and define your success criteria, then hit **Go!**
 
-```bash
-robin run --task "<your task>" --criteria "<your success criteria>"
-```
-
-### Python
-
-```python
-from robin import Robin
-
-result = Robin().run(
-    task="Summarize the latest AI research papers published this week",
-    criteria="Must cover at least 3 papers, include authors, and highlight key findings"
-)
-
-print(result)
-```
-
-### Options
-
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--task` | The task for the agent to complete | required |
-| `--criteria` | Success criteria for the evaluator | required |
-| `--max-iterations` | Max retry loops before giving up | `5` |
-| `--verbose` | Show agent and evaluator reasoning | `false` |
-| `--output` | Save result to a file | stdout |
+- **Task** — what you want Robin to do
+- **Success Criteria** — what a good answer looks like; Robin won't stop until this is met
+- **Reset** — clears the session and starts fresh with a new agent
 
 ---
 
@@ -95,12 +95,12 @@ print(result)
 
 **Task:** Find the current pricing for the top 3 cloud providers for a single GPU instance.
 
-**Criteria:** Must include AWS, GCP, and Azure. Each entry should have instance name, GPU type, and hourly price in USD.
+**Success Criteria:** Must include AWS, GCP, and Azure. Each entry should have instance name, GPU type, and hourly price in USD.
 
 **Robin's process:**
-1. Agent scrapes AWS, GCP, and Azure pricing pages
+1. Agent browses AWS, GCP, and Azure pricing pages
 2. Evaluator checks: are all 3 providers present? Is pricing included?
-3. First attempt missing Azure → agent retries
+3. First attempt missing Azure → agent retries with feedback
 4. Second attempt passes → result delivered ✅
 
 ---
@@ -108,7 +108,21 @@ print(result)
 ## Architecture
 
 ```
-will be updated
+app.py              → Gradio UI
+robin.py         → LangGraph graph, worker + evaluator nodes
+robin_tools.py   → Tool definitions (browser, search, REPL, files, push)
+sandbox/            → File output directory for agent-written files
 ```
 
 ---
+
+## Stack
+
+| Layer | Technology |
+|-------|------------|
+| UI | Gradio |
+| Orchestration | LangGraph |
+| LLM | GPT-4o-mini (OpenAI) |
+| Browser | Playwright (Chromium) |
+| Search | Google Serper |
+| Package manager | uv |
