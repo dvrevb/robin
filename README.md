@@ -126,3 +126,10 @@ sandbox/            → File output directory for agent-written files
 | Browser | Playwright (Chromium) |
 | Search | Google Serper |
 | Package manager | uv |
+
+## Langraph Steps
+# Step 1: Define the State object
+# Step 2: Start the Graph Builder with this State class
+# Step 3: Create a Node
+# Step 4: Create Edges
+# Step 5: Compile the Graph

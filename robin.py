@@ -5,7 +5,8 @@ from langgraph.graph.message import add_messages
 from dotenv import load_dotenv
 from langgraph.prebuilt import ToolNode
 from langchain_openai import ChatOpenAI
-from langgraph.checkpoint.memory import MemorySaver
+import aiosqlite
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from typing import List, Any, Optional, Dict
 from pydantic import BaseModel, Field
@@ -41,11 +42,12 @@ class Robin:
         self.llm_with_tools = None
         self.graph = None
         self.robin_id = str(uuid.uuid4())
-        self.memory = MemorySaver()
         self.browser = None
         self.playwright = None
 
     async def setup(self):
+        self._db_conn = await aiosqlite.connect("RobinMemory.db")
+        self.memory = AsyncSqliteSaver(self._db_conn)
         self.tools, self.browser, self.playwright = await playwright_tools()
         self.tools += await other_tools()
         worker_llm = ChatOpenAI(model="gpt-4o-mini")
@@ -224,14 +226,18 @@ class Robin:
         return history + [user, reply, feedback]
 
     def cleanup(self):
-        if self.browser:
-            try:
-                loop = asyncio.get_running_loop()
+        try:
+            loop = asyncio.get_running_loop()
+            if self._db_conn:
+                loop.create_task(self._db_conn.close())
+            if self.browser:
                 loop.create_task(self.browser.close())
-                if self.playwright:
-                    loop.create_task(self.playwright.stop())
-            except RuntimeError:
-                # If no loop is running, do a direct run
+            if self.playwright:
+                loop.create_task(self.playwright.stop())
+        except RuntimeError:
+            if self._db_conn:
+                asyncio.run(self._db_conn.close())
+            if self.browser:
                 asyncio.run(self.browser.close())
-                if self.playwright:
-                    asyncio.run(self.playwright.stop())
+            if self.playwright:
+                asyncio.run(self.playwright.stop())
