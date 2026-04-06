@@ -14,12 +14,15 @@ from langchain_experimental.tools import PythonREPLTool
 
 load_dotenv(override=True)
 
+
 PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN")
 PUSHOVER_USER = os.getenv("PUSHOVER_USER")
 PUSHOVER_URL = "https://api.pushover.net/1/messages.json"
 SANDBOX_DIR = "sandbox"
 
+
 serper = GoogleSerperAPIWrapper()
+
 
 async def playwright_tools() -> tuple[list, Browser, Playwright]:
     playwright = await async_playwright().start()
@@ -27,9 +30,6 @@ async def playwright_tools() -> tuple[list, Browser, Playwright]:
     toolkit = PlayWrightBrowserToolkit.from_browser(async_browser=browser)
     return toolkit.get_tools(), browser, playwright
 
-async def close_playwright(browser: Browser, playwright: Playwright) -> None:
-    await browser.close()
-    await playwright.stop()
 
 async def push(text: str) -> str:
     """Send a push notification via Pushover."""
@@ -42,10 +42,12 @@ async def push(text: str) -> str:
     response.raise_for_status()
     return "success"
 
+
 def get_file_tools() -> list:
     os.makedirs(SANDBOX_DIR, exist_ok=True)
     toolkit = FileManagementToolkit(root_dir=SANDBOX_DIR)
     return toolkit.get_tools()
+
 
 async def other_tools() -> list:
     push_tool = Tool(
