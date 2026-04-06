@@ -194,3 +194,9 @@ memory.db
 .vs/
 output/
 sandbox/
+
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
